@@ -34,8 +34,9 @@ jobs:
         run: dotnet build Starter.slnx --configuration Release --no-restore
 
       # Integration tests start SQL Server through Testcontainers, using the runner's Docker engine.
+      # global.json selects Microsoft.Testing.Platform, which xUnit v3 requires on current .NET 10 SDKs.
       - name: Test
-        run: dotnet test Starter.slnx --configuration Release --no-build --logger "trx;LogFilePrefix=results"
+        run: dotnet test --solution Starter.slnx --configuration Release --no-build --report-xunit-trx
 
       - name: Upload test results
         if: always()

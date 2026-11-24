@@ -210,7 +210,7 @@ See [docs/database.md](docs/database.md) for the schema and indexing decisions.
 Backend (integration tests need Docker; Testcontainers starts SQL Server automatically):
 
 ```bash
-dotnet test Starter.slnx
+dotnet test --solution Starter.slnx
 ```
 
 Frontend:
