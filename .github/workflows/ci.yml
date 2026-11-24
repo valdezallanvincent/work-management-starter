@@ -21,7 +21,7 @@ jobs:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -66,7 +66,7 @@ jobs:
       run:
         working-directory: client
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v5
         with:
@@ -94,7 +94,7 @@ jobs:
     timeout-minutes: 20
     needs: [backend, frontend]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Build API image
         run: docker build --file src/Starter.Api/Dockerfile --tag starter-api:ci .
