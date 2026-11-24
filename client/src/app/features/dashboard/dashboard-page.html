@@ -1,0 +1,70 @@
+<app-page-header title="Dashboard" [subtitle]="greeting()" />
+
+@if (error(); as message) {
+  <app-state-panel kind="error" [message]="message" (retry)="retry()" />
+} @else if (data(); as data) {
+  <section class="metrics" aria-label="Summary">
+    <a class="metric" routerLink="/work-items" [queryParams]="{ assignedToMe: true, status: ['Open', 'InProgress', 'InReview'] }">
+      <span class="metric-label">Assigned to me</span>
+      <span class="metric-value">{{ data.assignedToMeOpenCount }}</span>
+      <span class="metric-note">open items</span>
+    </a>
+    <a class="metric" routerLink="/work-items" [queryParams]="{ overdue: true }">
+      <span class="metric-label">Overdue</span>
+      <span class="metric-value" [class.attention]="data.overdueCount > 0">{{ data.overdueCount }}</span>
+      <span class="metric-note">past due date, not closed</span>
+    </a>
+    <a class="metric" routerLink="/work-items" [queryParams]="{ status: ['Open', 'InProgress', 'InReview'] }">
+      <span class="metric-label">Open work</span>
+      <span class="metric-value">{{ data.openWorkItemCount }}</span>
+      <span class="metric-note">across all projects</span>
+    </a>
+    <div class="metric">
+      <span class="metric-label">Completed</span>
+      <span class="metric-value">{{ data.completedLast7DaysCount }}</span>
+      <span class="metric-note">in the last 7 days</span>
+    </div>
+    <a class="metric" routerLink="/projects">
+      <span class="metric-label">Active projects</span>
+      <span class="metric-value">{{ data.activeProjectCount }}</span>
+      <span class="metric-note">not archived</span>
+    </a>
+  </section>
+
+  <div class="panels">
+    <section class="panel" aria-labelledby="by-status">
+      <h2 id="by-status">Work items by status</h2>
+      <table class="breakdown">
+        <tbody>
+          @for (row of data.byStatus; track row.status) {
+            <tr>
+              <td class="label"><app-status-badge [value]="row.status" /></td>
+              <td class="bar-cell"><span class="bar" [style.width]="barWidth(row.count)"></span></td>
+              <td class="count">
+                <a routerLink="/work-items" [queryParams]="{ status: row.status }">{{ row.count }}</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel" aria-labelledby="by-priority">
+      <h2 id="by-priority">Open work by priority</h2>
+      <table class="breakdown">
+        <tbody>
+          @for (row of data.openByPriority.slice().reverse(); track row.priority) {
+            <tr>
+              <td class="label"><app-status-badge [value]="row.priority" /></td>
+              <td class="count">
+                <a routerLink="/work-items" [queryParams]="{ priority: row.priority, status: ['Open', 'InProgress', 'InReview'] }">{{ row.count }}</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+} @else {
+  <app-state-panel kind="loading" />
+}

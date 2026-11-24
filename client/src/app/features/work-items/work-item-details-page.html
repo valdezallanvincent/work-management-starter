@@ -1,0 +1,90 @@
+@if (error(); as message) {
+  <app-page-header title="Work item" [breadcrumbs]="[{ label: 'Work items', link: '/work-items' }, { label: 'Not available' }]" />
+  <app-state-panel kind="error" [message]="message" (retry)="reload()" />
+} @else if (item(); as item) {
+  <app-page-header [title]="item.title" [breadcrumbs]="breadcrumbs()">
+    @if (item.permissions.canEdit) {
+      <button mat-stroked-button type="button" (click)="edit(item)">Edit</button>
+    }
+  </app-page-header>
+
+  @if (item.projectIsArchived) {
+    <p class="notice" role="status">This work item belongs to an archived project and is read-only.</p>
+  } @else if (isClosed()) {
+    <p class="notice" role="status">{{ item.status | enumLabel }} work items cannot be edited. Reopen it to make changes.</p>
+  }
+
+  <div class="layout">
+    <section class="main">
+      <div class="workflow" aria-label="Workflow">
+        <app-status-badge [value]="item.status" />
+        @if (item.permissions.canChangeStatus) {
+          @for (next of item.allowedTransitions; track next) {
+            <button mat-stroked-button type="button" [disabled]="busy()" (click)="changeStatus(item, next)">{{ transitionLabel(next) }}</button>
+          }
+        }
+      </div>
+
+      <h2 class="section-title">Description</h2>
+      <p class="description">{{ item.description || 'No description.' }}</p>
+
+      <app-work-item-comments [workItemId]="item.id" [readOnly]="readOnly()" />
+    </section>
+
+    <aside class="side">
+      <dl class="facts">
+        <div>
+          <dt>Project</dt>
+          <dd><a [routerLink]="['/projects', item.projectId]">{{ item.projectKey }} - {{ item.projectName }}</a></dd>
+        </div>
+        <div>
+          <dt>Assignee</dt>
+          <dd>
+            @if (!item.permissions.canAssignOthers) {
+              {{ item.assigneeName ?? 'Unassigned' }}
+            } @else {
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="compact">
+                <mat-select [value]="item.assigneeId ?? ''" [disabled]="busy()" (selectionChange)="assign(item, $event.value || null)" aria-label="Assignee">
+                  <mat-option value="">Unassigned</mat-option>
+                  @for (user of users(); track user.id) {
+                    <mat-option [value]="user.id">{{ user.displayName }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+            @if (item.permissions.canSelfAssign && !item.assigneeId) {
+              <button mat-button type="button" class="self-assign" (click)="assignToMe(item)">Assign to me</button>
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Priority</dt>
+          <dd>
+            @if (!item.permissions.canEdit) {
+              <app-status-badge [value]="item.priority" />
+            } @else {
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="compact">
+                <mat-select [value]="item.priority" [disabled]="busy()" (selectionChange)="changePriority(item, $event.value)" aria-label="Priority">
+                  @for (priority of priorities; track priority) {
+                    <mat-option [value]="priority">{{ priority }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          </dd>
+        </div>
+        <div><dt>Due date</dt><dd>{{ item.dueDate ? (item.dueDate | date: 'mediumDate') : 'None' }}</dd></div>
+        <div><dt>Reporter</dt><dd>{{ item.reporterName }}</dd></div>
+        <div><dt>Created</dt><dd>{{ item.createdAtUtc | date: 'medium' }}</dd></div>
+        @if (item.modifiedAtUtc) {
+          <div><dt>Last changed</dt><dd>{{ item.modifiedAtUtc | date: 'medium' }}{{ item.modifiedByName ? ' by ' + item.modifiedByName : '' }}</dd></div>
+        }
+        @if (item.completedAtUtc) {
+          <div><dt>Completed</dt><dd>{{ item.completedAtUtc | date: 'medium' }}</dd></div>
+        }
+      </dl>
+    </aside>
+  </div>
+} @else {
+  <app-state-panel kind="loading" />
+}

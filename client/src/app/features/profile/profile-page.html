@@ -1,0 +1,57 @@
+<app-page-header title="Profile" [breadcrumbs]="[{ label: 'Profile' }]" />
+
+@if (profile(); as profile) {
+  <div class="sections">
+    <section class="section">
+      <h2>Account</h2>
+      <dl class="facts">
+        <div><dt>Email</dt><dd>{{ profile.email }}</dd></div>
+        <div><dt>Role</dt><dd>{{ profile.role | enumLabel }}</dd></div>
+        <div><dt>Member since</dt><dd>{{ profile.createdAtUtc | date: 'mediumDate' }}</dd></div>
+        <div><dt>Last sign-in</dt><dd>{{ profile.lastLoginAtUtc ? (profile.lastLoginAtUtc | date: 'medium') : 'Never' }}</dd></div>
+      </dl>
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Display name</mat-label>
+          <input matInput formControlName="displayName" maxlength="100" autocomplete="name" />
+        </mat-form-field>
+        <div class="form-actions">
+          <button mat-flat-button type="submit" [disabled]="profileForm.invalid || profileForm.pristine || savingProfile()">Save</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="section">
+      <h2>Change password</h2>
+      <p class="hint">At least 12 characters. A passphrase of several words works well.</p>
+      <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Current password</mat-label>
+          <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>New password</mat-label>
+          <input matInput type="password" formControlName="newPassword" autocomplete="new-password" />
+          @if (passwordForm.controls.newPassword.hasError('minlength')) {
+            <mat-error>Use at least 12 characters.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Confirm new password</mat-label>
+          <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
+        </mat-form-field>
+        @if (passwordForm.hasError('mismatch') && passwordForm.controls.confirmPassword.touched) {
+          <p class="form-error" role="alert">The new passwords do not match.</p>
+        }
+        @if (passwordError()) {
+          <p class="form-error" role="alert">{{ passwordError() }}</p>
+        }
+        <div class="form-actions">
+          <button mat-flat-button type="submit" [disabled]="savingPassword()">Change password</button>
+        </div>
+      </form>
+    </section>
+  </div>
+} @else {
+  <app-state-panel kind="loading" />
+}

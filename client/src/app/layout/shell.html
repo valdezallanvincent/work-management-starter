@@ -1,0 +1,64 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav #sidenav [mode]="isCompact() ? 'over' : 'side'" [opened]="!isCompact()" class="sidenav">
+    <div class="brand">Work Management</div>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="active" (click)="isCompact() && sidenav.close()">Dashboard</a>
+      <a mat-list-item routerLink="/projects" routerLinkActive="active" (click)="isCompact() && sidenav.close()">Projects</a>
+      <a mat-list-item routerLink="/work-items" routerLinkActive="active" (click)="isCompact() && sidenav.close()">Work items</a>
+      <ng-container *appHasRole="['Admin']">
+        <div class="nav-section">Administration</div>
+        <a mat-list-item routerLink="/users" routerLinkActive="active" (click)="isCompact() && sidenav.close()">Users</a>
+      </ng-container>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content">
+    <mat-toolbar class="toolbar">
+      @if (isCompact()) {
+        <button mat-icon-button type="button" (click)="sidenav.toggle()" aria-label="Toggle navigation">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+      <span class="spacer"></span>
+
+      <button mat-icon-button type="button" [matMenuTriggerFor]="inbox" (menuOpened)="notifications.load()"
+              aria-label="Notifications">
+        <mat-icon [matBadge]="notifications.inbox().unreadCount || null" matBadgeSize="small"
+                  aria-hidden="false">notifications</mat-icon>
+      </button>
+      <mat-menu #inbox="matMenu" class="inbox-menu" xPosition="before">
+        <div class="inbox-header" (click)="$event.stopPropagation()">
+          <span>Notifications</span>
+          @if (notifications.inbox().unreadCount > 0) {
+            <button mat-button type="button" (click)="notifications.markAllRead()">Mark all read</button>
+          }
+        </div>
+        @for (item of notifications.inbox().items; track item.id) {
+          <a mat-menu-item [routerLink]="item.workItemId ? ['/work-items', item.workItemId] : null" [class.unread]="!item.readAtUtc">
+            <span class="inbox-message">{{ item.message }}</span>
+            <span class="inbox-time">{{ item.createdAtUtc | date: 'short' }}</span>
+          </a>
+        } @empty {
+          <div class="inbox-empty">No notifications.</div>
+        }
+      </mat-menu>
+
+      <button mat-button type="button" class="user-button" [matMenuTriggerFor]="userMenu">
+        <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+        <span class="user-name">{{ auth.user()?.displayName }}</span>
+      </button>
+      <mat-menu #userMenu="matMenu" xPosition="before">
+        <div class="user-meta">
+          <div>{{ auth.user()?.email }}</div>
+          <div class="role">{{ auth.user()?.role | enumLabel }}</div>
+        </div>
+        <a mat-menu-item routerLink="/profile">Profile</a>
+        <button mat-menu-item type="button" (click)="auth.logout()">Sign out</button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <main class="page">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

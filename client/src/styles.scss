@@ -1,0 +1,98 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: (
+      plain-family: (system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif),
+      brand-family: (system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif),
+    ),
+    density: -2,
+  ));
+
+  // Squarer corners than the Material 3 defaults suit a dense business UI.
+  @include mat.button-overrides((filled-container-shape: 4px, outlined-container-shape: 4px, text-container-shape: 4px));
+  @include mat.dialog-overrides((container-shape: 8px));
+  @include mat.form-field-overrides((outlined-container-shape: 4px));
+
+  --app-surface: #ffffff;
+  --app-surface-alt: #f6f7f9;
+  --app-border: #e2e5ea;
+  --app-border-strong: #b9c0ca;
+  --app-text-muted: #5b6573;
+  --app-link: #1f5fbf;
+  --app-error: #b3261e;
+  --app-nav-active: #e7edf6;
+  --app-bar: #8aa4c8;
+  --app-badge-neutral-bg: #eceff3;
+  --app-badge-neutral-fg: #3c4450;
+  --app-badge-info-bg: #e3edfb;
+  --app-badge-info-fg: #1d4f91;
+  --app-badge-warning-bg: #fdf1dc;
+  --app-badge-warning-fg: #7a4b00;
+  --app-badge-success-bg: #e3f3e8;
+  --app-badge-success-fg: #1c6b3a;
+  --app-badge-danger-bg: #fbe5e3;
+  --app-badge-danger-fg: #8c1d18;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  background: var(--app-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filters mat-form-field { width: 180px; }
+.filters .search { width: 260px; }
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+}
+
+.table-scroll table { width: 100%; }
+.mat-mdc-header-cell { font-weight: 600; color: var(--app-text-muted); }
+.numeric { text-align: right !important; font-variant-numeric: tabular-nums; }
+.row-link { color: var(--app-link); text-decoration: none; font-weight: 500; }
+.row-link:hover { text-decoration: underline; }
+
+.section-title { font-size: 15px; font-weight: 600; margin: 0 0 8px; }
+
+.form-grid { display: flex; flex-direction: column; gap: 4px; padding-top: 8px !important; }
+.form-grid mat-form-field { width: 100%; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-error { color: var(--app-error); font-size: 13px; margin: 0 0 8px; }
+
+button.destructive { --mat-button-filled-container-color: #b3261e; }
+.snack-error { --mat-snack-bar-container-color: #5c1612; }
+
+@media (max-width: 600px) {
+  .filters mat-form-field, .filters .search { width: 100%; }
+  .form-row { grid-template-columns: 1fr; }
+}
