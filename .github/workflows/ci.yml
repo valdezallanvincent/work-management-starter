@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore Starter.slnx
+
+      - name: Build
+        run: dotnet build Starter.slnx --configuration Release --no-restore
+
+      # Integration tests start SQL Server through Testcontainers, using the runner's Docker engine.
+      - name: Test
+        run: dotnet test Starter.slnx --configuration Release --no-build --logger "trx;LogFilePrefix=results"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: tests/**/TestResults/*.trx
+          if-no-files-found: ignore
+
+      - name: Check for vulnerable NuGet packages
+        run: |
+          dotnet list Starter.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt
+          if grep -qE "^\s+>\s" vulnerable.txt; then
+            echo "::error::Vulnerable NuGet packages found"
+            exit 1
+          fi
+
+      - name: Check migrations are up to date
+        run: |
+          dotnet tool restore
+          dotnet ef migrations has-pending-model-changes --project src/Starter.Infrastructure --startup-project src/Starter.Api --no-build --configuration Release
+
+  frontend:
+    name: Frontend build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test -- --watch=false
+
+      # Runtime dependencies must be clean. Dev tooling advisories are reviewed through Dependabot
+      # instead, because they often have no fix inside the supported Angular major version.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+  docker:
+    name: Container images build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build API image
+        run: docker build --file src/Starter.Api/Dockerfile --tag starter-api:ci .
+
+      - name: Build web image
+        run: docker build --tag starter-web:ci client

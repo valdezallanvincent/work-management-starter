@@ -1,0 +1,62 @@
+@if (error(); as message) {
+  <app-page-header title="Project" [breadcrumbs]="[{ label: 'Projects', link: '/projects' }, { label: 'Not available' }]" />
+  <app-state-panel kind="error" [message]="message" (retry)="reload()" />
+} @else if (project(); as project) {
+  <app-page-header [title]="project.name" [subtitle]="project.key" [breadcrumbs]="breadcrumbs()">
+    @if (project.status === 'Active') {
+      <button mat-flat-button type="button" (click)="newWorkItem(project)">New work item</button>
+    }
+    @if (project.canManage) {
+      @if (project.status === 'Active') {
+        <button mat-stroked-button type="button" (click)="edit(project)">Edit</button>
+      }
+      <button mat-stroked-button type="button" (click)="toggleArchive(project)">
+        {{ project.status === 'Active' ? 'Archive' : 'Restore' }}
+      </button>
+    }
+  </app-page-header>
+
+  @if (project.status === 'Archived') {
+    <p class="notice" role="status">
+      Archived on {{ project.archivedAtUtc | date: 'mediumDate' }}. The project and its work items are read-only.
+    </p>
+  }
+
+  <section class="overview">
+    <dl class="facts">
+      <div><dt>Status</dt><dd><app-status-badge [value]="project.status" /></dd></div>
+      <div><dt>Owner</dt><dd>{{ project.ownerName }}</dd></div>
+      <div><dt>Created</dt><dd>{{ project.createdAtUtc | date: 'medium' }}{{ project.createdByName ? ' by ' + project.createdByName : '' }}</dd></div>
+      @if (project.modifiedAtUtc) {
+        <div><dt>Last changed</dt><dd>{{ project.modifiedAtUtc | date: 'medium' }}{{ project.modifiedByName ? ' by ' + project.modifiedByName : '' }}</dd></div>
+      }
+    </dl>
+    <div class="description">
+      <h2>Description</h2>
+      <p>{{ project.description || 'No description.' }}</p>
+    </div>
+    <div class="counts">
+      <h2>Work items</h2>
+      <ul>
+        @for (status of statuses; track status) {
+          <li><span>{{ status | enumLabel }}</span><strong>{{ project.workItemCountsByStatus[status] }}</strong></li>
+        }
+      </ul>
+    </div>
+  </section>
+
+  <h2 class="section-title">Work items</h2>
+  @if (itemResult(); as items) {
+    @if (items.totalCount === 0) {
+      <app-state-panel kind="empty" message="This project has no work items yet." />
+    } @else {
+      <app-work-item-table [result]="items" [showProject]="false" [sortBy]="itemQuery().sortBy ?? ''"
+                           [sortDirection]="itemQuery().sortDirection === 'Descending' ? 'desc' : itemQuery().sortBy ? 'asc' : ''"
+                           (sortChange)="sortItems($event)" (pageChange)="pageItems($event)" />
+    }
+  } @else {
+    <app-state-panel kind="loading" />
+  }
+} @else {
+  <app-state-panel kind="loading" />
+}

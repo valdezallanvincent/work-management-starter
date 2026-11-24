@@ -1,0 +1,36 @@
+.notice {
+  padding: 10px 14px;
+  border: 1px solid var(--app-border);
+  border-left: 3px solid var(--app-text-muted);
+  background: var(--app-surface-alt);
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.overview {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 0.8fr;
+  gap: 24px;
+  padding: 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  margin-bottom: 24px;
+}
+
+h2 { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--app-text-muted); }
+.section-title { font-size: 15px; color: inherit; margin-bottom: 8px; }
+
+.facts { margin: 0; display: grid; gap: 10px; font-size: 13px; }
+.facts dt { color: var(--app-text-muted); font-size: 12px; }
+.facts dd { margin: 2px 0 0; }
+
+.description p { margin: 0; font-size: 13px; white-space: pre-line; line-height: 1.5; }
+
+.counts ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+.counts li { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--app-border); }
+.counts li:last-child { border-bottom: none; }
+.counts strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  .overview { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,55 @@
+<app-page-header title="Work items" [breadcrumbs]="[{ label: 'Work items' }]">
+  <button mat-flat-button type="button" (click)="create()">New work item</button>
+</app-page-header>
+
+<div class="filters">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search">
+    <mat-label>Search titles</mat-label>
+    <input matInput type="search" [formControl]="searchControl" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Project</mat-label>
+    <mat-select [value]="query().projectId ?? ''" (selectionChange)="update({ projectId: $event.value || null })">
+      <mat-option value="">All projects</mat-option>
+      @for (project of projects(); track project.id) {
+        <mat-option [value]="project.id">{{ project.key }} - {{ project.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Status</mat-label>
+    <mat-select multiple [value]="query().status ?? []" (selectionChange)="update({ status: $event.value.length ? $event.value : null })">
+      @for (status of statuses; track status) {
+        <mat-option [value]="status">{{ status | enumLabel }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Priority</mat-label>
+    <mat-select [value]="query().priority ?? ''" (selectionChange)="update({ priority: $event.value || null })">
+      <mat-option value="">Any</mat-option>
+      @for (priority of priorities; track priority) {
+        <mat-option [value]="priority">{{ priority }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-checkbox [checked]="query().assignedToMe" (change)="update({ assignedToMe: $event.checked || null })">Assigned to me</mat-checkbox>
+  <mat-checkbox [checked]="query().overdue" (change)="update({ overdue: $event.checked || null })">Overdue</mat-checkbox>
+  @if (hasFilters()) {
+    <button mat-button type="button" (click)="clearFilters()">Clear filters</button>
+  }
+</div>
+
+@if (error(); as message) {
+  <app-state-panel kind="error" [message]="message" (retry)="reload()" />
+} @else if (result(); as result) {
+  @if (result.totalCount === 0) {
+    <app-state-panel kind="empty" [message]="hasFilters() ? 'No work items match these filters.' : 'No work items yet.'" />
+  } @else {
+    <app-work-item-table [result]="result" [sortBy]="query().sortBy ?? ''"
+                         [sortDirection]="query().sortBy ? (query().sortDirection === 'Ascending' ? 'asc' : 'desc') : ''"
+                         (sortChange)="sort($event)" (pageChange)="page($event)" />
+  }
+} @else {
+  <app-state-panel kind="loading" />
+}
